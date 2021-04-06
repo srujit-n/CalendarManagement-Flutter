@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return FutureBuilder(
       // Initialize FlutterFire:
       future: _initialization,
