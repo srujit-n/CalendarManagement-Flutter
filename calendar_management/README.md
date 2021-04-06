@@ -1,6 +1,6 @@
 # calendar_management
 
-A new Flutter application.
+Calendar Management  App
 
 ## Getting Started
 
