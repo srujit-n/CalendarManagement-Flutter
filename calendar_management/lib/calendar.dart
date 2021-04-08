@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:calendar_management/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -12,19 +13,49 @@ class CalendarPage extends StatefulWidget{
   State<StatefulWidget> createState()  => CalendarState();
 }
 class CalendarState extends State<CalendarPage> {
+
+  Future<Map> getEventData() async{
+    Map temp={};
+    await databaseRef.then((s){
+      setState(() {
+        temp = s.data().containsKey("Events")?s.get("Events"):{DateTime.now():List.generate(2, (index) =>  Event('Event${index + 1}',users))};
+      });
+    });
+    return temp;
+  }
+  final _kEventSource = Map.fromIterable(List.generate(50, (index) => index),
+      key: (item) => DateTime.utc(2020, 10, item * 5),
+      value: (item) => List.generate(
+          item % 4 + 1, (index) => Event('Event $item | ${index + 1}',users)))
+    ..addAll({
+      DateTime.now(): [
+        Event('Today\'s Event 1',[]),
+        Event('Today\'s Event 2',[]),
+      ],
+    });
+  LinkedHashMap kEvents= LinkedHashMap();
    ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
-      .toggledOff; // Can be toggled on/off by longpressing a date
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay;
-  DateTime _rangeStart;
-  DateTime _rangeEnd;
-
+  Map res = Map();
   @override
   void initState() {
     super.initState();
-
+    DateFormat s = DateFormat.yMMMd();
+    getEventData().then((value){
+      setState(() {
+        res=value;
+      });
+      print(res);
+      Map<DateTime,dynamic>_kEventSource1 = Map.fromIterable(res.entries,
+          key: (item) => item.toDate(),
+          value: (value) => value);
+      kEvents = LinkedHashMap<DateTime, List<Event>>(
+        equals: isSameDay,
+        hashCode: getHashCode,
+      )..addAll(_kEventSource);
+    });
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay));
   }
@@ -39,48 +70,17 @@ class CalendarState extends State<CalendarPage> {
     // Implementation example
     return kEvents[day] ?? [];
   }
-
-  List<Event> _getEventsForRange(DateTime start, DateTime end) {
-    // Implementation example
-    final days = daysInRange(start, end);
-
-    return [
-      for (final d in days) ..._getEventsForDay(d),
-    ];
-  }
-
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
-        _rangeStart = null; // Important to clean those
-        _rangeEnd = null;
-        _rangeSelectionMode = RangeSelectionMode.toggledOff;
       });
 
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
 
-  void _onRangeSelected(DateTime start, DateTime end, DateTime focusedDay) {
-    setState(() {
-      _selectedDay = null;
-      _focusedDay = focusedDay;
-      _rangeStart = start;
-      _rangeEnd = end;
-      _rangeSelectionMode = RangeSelectionMode.toggledOn;
-    });
-
-    // `start` or `end` could be null
-    if (start != null && end != null) {
-      _selectedEvents.value = _getEventsForRange(start, end);
-    } else if (start != null) {
-      _selectedEvents.value = _getEventsForDay(start);
-    } else if (end != null) {
-      _selectedEvents.value = _getEventsForDay(end);
-    }
-  }
    static const _actionTitles = ['Create an event', 'Send reminders'];
    void _showAction(BuildContext context, int index) {
      showDialog<void>(
@@ -109,7 +109,7 @@ class CalendarState extends State<CalendarPage> {
         title: Text('Calendar'),
       ),
       floatingActionButton: ExpandableFab(
-        distance: 112.0,
+        distance: 100.0,
         children: [
           ActionButton(
             onPressed: () => _showAction(context, 1),
