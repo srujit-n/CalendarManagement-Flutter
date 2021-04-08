@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import 'fab.dart';
+
 class CalendarPage extends StatefulWidget{
   @override
   State<StatefulWidget> createState()  => CalendarState();
@@ -79,6 +81,23 @@ class CalendarState extends State<CalendarPage> {
       _selectedEvents.value = _getEventsForDay(end);
     }
   }
+   static const _actionTitles = ['Create an event', 'Send reminders'];
+   void _showAction(BuildContext context, int index) {
+     showDialog<void>(
+       context: context,
+       builder: (context) {
+         return AlertDialog(
+           content: Text(_actionTitles[index]),
+           actions: [
+             TextButton(
+               onPressed: () => Navigator.of(context).pop(),
+               child: const Text('CLOSE'),
+             ),
+           ],
+         );
+       },
+     );
+   }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +106,20 @@ class CalendarState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text('Calendar',),
+        title: Text('Calendar'),
+      ),
+      floatingActionButton: ExpandableFab(
+        distance: 112.0,
+        children: [
+          ActionButton(
+            onPressed: () => _showAction(context, 1),
+            icon: const Icon(Icons.mail_outline_rounded),
+          ),
+          ActionButton(
+            onPressed: () => _showAction(context, 0),
+            icon: const Icon(Icons.add),
+          ),
+        ],
       ),
       body: Column(
         children: [
