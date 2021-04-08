@@ -91,5 +91,7 @@ class Auth implements BaseAuth {
 
     return user;
   }
+
+  // ignore: missing_return
 }
 

@@ -127,7 +127,7 @@ class _LogInPageState extends State<LogInPage> {
         context,
         MaterialPageRoute(
             builder: (context) =>  CalendarPage(),
-            settings: RouteSettings(name: 'Main')),
+            settings: RouteSettings(name: 'Dashboard')),
             (Route<dynamic> route) => false,
       );
     }
@@ -150,7 +150,7 @@ class _LogInPageState extends State<LogInPage> {
             context,
             MaterialPageRoute(
                 builder: (context) =>  CalendarPage(),
-                settings: RouteSettings(name: 'Main')),
+                settings: RouteSettings(name: 'Dashboard')),
                 (Route<dynamic> route) => false,
           );
         } else {
@@ -168,8 +168,8 @@ class _LogInPageState extends State<LogInPage> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-              builder: (context) =>CalendarPage(),
-              settings: RouteSettings(name: 'Main')),
+              builder: (context) => CalendarPage(),
+              settings: RouteSettings(name: 'Dashboard')),
               (Route<dynamic> route) => false,
         );
       } catch (e) {
