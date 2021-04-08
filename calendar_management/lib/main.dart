@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
                       primaryColor: const Color(0xff29a39d),
                       accentColor: const Color(0xff29a39d),
                     ),
-                    home: TableEventsExample()));
+                    home: CalendarPage()));
           } else {
             return OverlaySupport(
                 child: MaterialApp(

@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:calendar_management/auth.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -116,7 +118,7 @@ class _LogInPageState extends State<LogInPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-            builder: (context) => TableEventsExample(),
+            builder: (context) => CalendarPage(),
             settings: RouteSettings(name: 'Profile Creation')),
             (Route<dynamic> route) => false,
       );
@@ -124,8 +126,8 @@ class _LogInPageState extends State<LogInPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-            builder: (context) =>  TableEventsExample(),
-            settings: RouteSettings(name: 'Dashboard')),
+            builder: (context) =>  CalendarPage(),
+            settings: RouteSettings(name: 'Main')),
             (Route<dynamic> route) => false,
       );
     }
@@ -147,8 +149,8 @@ class _LogInPageState extends State<LogInPage> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (context) =>  TableEventsExample(),
-                settings: RouteSettings(name: 'Dashboard')),
+                builder: (context) =>  CalendarPage(),
+                settings: RouteSettings(name: 'Main')),
                 (Route<dynamic> route) => false,
           );
         } else {
@@ -166,8 +168,8 @@ class _LogInPageState extends State<LogInPage> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-              builder: (context) => TableEventsExample(),
-              settings: RouteSettings(name: 'Dashboard')),
+              builder: (context) =>CalendarPage(),
+              settings: RouteSettings(name: 'Main')),
               (Route<dynamic> route) => false,
         );
       } catch (e) {
@@ -273,6 +275,8 @@ class _LogInPageState extends State<LogInPage> {
                 width: width,
                 margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
                 child: TextField(
+                  keyboardType: TextInputType.text,
+                  obscureText: true,
                   focusNode: emailFocus,
                   controller: email,
                   decoration: new InputDecoration(

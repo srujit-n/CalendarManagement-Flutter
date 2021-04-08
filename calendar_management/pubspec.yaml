@@ -31,6 +31,7 @@ dependencies:
   table_calendar:
   overlay_support:
   firebase_core:
+  intl:
   google_sign_in:
   firebase_auth:
   cloud_firestore:
