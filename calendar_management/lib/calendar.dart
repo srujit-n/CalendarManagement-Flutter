@@ -87,6 +87,14 @@ class CalendarState extends State<CalendarPage> {
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
+  Future sendReminders(DateTime d) async{
+    var s =await databaseReference.collection('Users').doc(Auth()
+        .getCurrentUser()
+        .uid).get();
+    if (s.exists) {
+      s.get( DateFormat('yyyy-MM-dd').format(_focusedDay));
+    }
+  }
   Future setEvents() async {
     events.add({
       "Event": event.text,
