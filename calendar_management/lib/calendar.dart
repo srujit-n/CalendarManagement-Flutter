@@ -7,6 +7,7 @@ import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'auth.dart';
@@ -43,6 +44,7 @@ class CalendarState extends State<CalendarPage> {
    ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
+  List<Map> events=[];
   TextEditingController event = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
@@ -86,15 +88,25 @@ class CalendarState extends State<CalendarPage> {
     }
   }
   Future setEvents() async {
+    events.add({
+      "Event": event.text,
+      "description": desc.text,
+      "users": emails
+    });
     final snapShot =
     await databaseReference.collection('Users').doc(Auth()
         .getCurrentUser()
         .uid).get();
-    if (snapShot == null || !snapShot.exists) {
-
-      print('Signed up:' + Auth()
+    print(snapShot.exists);
+    if (snapShot.exists) {
+      DocumentReference newData =
+      databaseReference.collection("Users").doc(Auth()
           .getCurrentUser()
           .uid);
+      newData.update({
+        DateFormat('yyyy-MM-dd').format(_focusedDay): events
+      });
+      print('Event Added');
     }
   }
 
@@ -154,7 +166,7 @@ class CalendarState extends State<CalendarPage> {
              TextButton(
                onPressed: (){
                  print(emails);
-                 setEvents();
+                 setEvents().whenComplete(() => Navigator.of(context).pop());
                },
                child: const Text('OK'),),
            ],
