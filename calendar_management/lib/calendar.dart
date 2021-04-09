@@ -1,11 +1,16 @@
 import 'dart:collection';
+import 'dart:math';
 
+import 'package:calendar_management/LogIn.dart';
+import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import 'auth.dart';
+import 'datepicker.dart';
 import 'fab.dart';
 
 class CalendarPage extends StatefulWidget{
@@ -33,24 +38,24 @@ class CalendarState extends State<CalendarPage> {
         Event('Today\'s Event 2',[]),
       ],
     });
+  List<String> emails=[];
   LinkedHashMap kEvents= LinkedHashMap();
    ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
+  TextEditingController event = TextEditingController();
+  TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
+  DateTime EventDate = DateTime.now();
   Map res = Map();
   @override
   void initState() {
     super.initState();
-    DateFormat s = DateFormat.yMMMd();
     getEventData().then((value){
       setState(() {
         res=value;
       });
       print(res);
-      Map<DateTime,dynamic>_kEventSource1 = Map.fromIterable(res.entries,
-          key: (item) => item.toDate(),
-          value: (value) => value);
       kEvents = LinkedHashMap<DateTime, List<Event>>(
         equals: isSameDay,
         hashCode: getHashCode,
@@ -80,6 +85,18 @@ class CalendarState extends State<CalendarPage> {
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
+  Future setEvents() async {
+    final snapShot =
+    await databaseReference.collection('Users').doc(Auth()
+        .getCurrentUser()
+        .uid).get();
+    if (snapShot == null || !snapShot.exists) {
+
+      print('Signed up:' + Auth()
+          .getCurrentUser()
+          .uid);
+    }
+  }
 
    static const _actionTitles = ['Create an event', 'Send reminders'];
    void _showAction(BuildContext context, int index) {
@@ -87,12 +104,59 @@ class CalendarState extends State<CalendarPage> {
        context: context,
        builder: (context) {
          return AlertDialog(
-           content: Text(_actionTitles[index]),
+           content:Container(
+             height: MediaQuery.of(context).size.height/3,
+             child: Column(
+               children: [
+                 IgnorePointer(
+                   child: MyTextFieldDatePicker(
+                     prefixIcon: Icon(Icons.calendar_today_rounded),
+                     firstDate: kFirstDay,
+                     lastDate: kLastDay,
+                     initialDate: _focusedDay, onDateChanged: (DateTime value) {
+                       if(mounted)
+                       setState(() {
+                         EventDate =value;
+                       });
+                       print(EventDate);
+                   },
+                   ),
+                 ),
+                 SizedBox( height: 8),
+                 TextField(
+                   controller: event,
+                   decoration: InputDecoration(
+                     border: OutlineInputBorder(),
+                     labelText: "Event",
+                     hintText: "Enter Event Name"
+                   ),
+                 ),
+                 SizedBox( height: 8),
+                 TextField(
+                   controller: desc,
+                   decoration: InputDecoration(
+                       border: OutlineInputBorder(),
+                       labelText: "Description",
+                       hintText: "Enter Event Description"
+                   ),
+                 ),
+                 SizedBox( height: 8),
+                 EmailInput(parentEmails: emails,)
+               ],
+             ),
+           ),
+           title:  Text(_actionTitles[index]),
            actions: [
              TextButton(
                onPressed: () => Navigator.of(context).pop(),
-               child: const Text('CLOSE'),
+               child: const Text('CANCEL',style:TextStyle(color: Colors.red),),
              ),
+             TextButton(
+               onPressed: (){
+                 print(emails);
+                 setEvents();
+               },
+               child: const Text('OK'),),
            ],
          );
        },
