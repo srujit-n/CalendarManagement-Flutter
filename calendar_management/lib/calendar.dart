@@ -1,13 +1,10 @@
 import 'dart:collection';
-import 'dart:math';
-
 import 'package:calendar_management/LogIn.dart';
 import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'auth.dart';
@@ -19,52 +16,46 @@ class CalendarPage extends StatefulWidget{
   State<StatefulWidget> createState()  => CalendarState();
 }
 class CalendarState extends State<CalendarPage> {
-
-  Future<Map> getEventData() async{
-    Map temp={};
-    await databaseRef.then((s){
-      setState(() {
-        temp = s.data().containsKey("Events")?s.get("Events"):{DateTime.now():List.generate(2, (index) =>  Event('Event${index + 1}',users))};
-      });
-    });
-    return temp;
-  }
-  final _kEventSource = Map.fromIterable(List.generate(50, (index) => index),
-      key: (item) => DateTime.utc(2020, 10, item * 5),
-      value: (item) => List.generate(
-          item % 4 + 1, (index) => Event('Event $item | ${index + 1}',users)))
-    ..addAll({
-      DateTime.now(): [
-        Event('Today\'s Event 1',[]),
-        Event('Today\'s Event 2',[]),
-      ],
-    });
-  List<String> emails=[];
+  List<String> emails=[Auth().getCurrentUser().email];
   LinkedHashMap kEvents= LinkedHashMap();
-   ValueNotifier<List<Event>> _selectedEvents;
+  ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
-  List<Map> events=[];
+  List  events=[];
   TextEditingController event = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
+  Timestamp t;
   DateTime EventDate = DateTime.now();
+  Map<DateTime,List<Event>> _kEvent1;
   Map res = Map();
+  Future<void> getEventData() async{
+     var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
+     for(int i=0;i<d.docs.length;i++){
+       events.addAll(d.docs[i].get("EventList"));
+     }
+     _kEvent1 = Map.fromIterable(List.generate(events.length, (index) => index),
+     key: (i){
+       print(events[i]["time"].toDate());
+       return events[i]["time"].toDate();},
+     value: (i)=> List.generate(
+         events.length, (index) => Event(events[i]["Event"],events[i]["users"])),
+     );
+     kEvents = LinkedHashMap<DateTime, List<Event>>(
+       equals: isSameDay,
+       hashCode: getHashCode,
+     )..addAll(_kEvent1);
+     print("added successfully");
+  }
+
   @override
   void initState() {
     super.initState();
-    getEventData().then((value){
-      setState(() {
-        res=value;
-      });
-      print(res);
-      kEvents = LinkedHashMap<DateTime, List<Event>>(
-        equals: isSameDay,
-        hashCode: getHashCode,
-      )..addAll(_kEventSource);
-    });
-    _selectedDay = _focusedDay;
-    _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay));
+    getEventData();
+    print(events.length);
+      _selectedDay = _focusedDay;
+      _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay));
+
   }
 
   @override
@@ -99,23 +90,17 @@ class CalendarState extends State<CalendarPage> {
     events.add({
       "Event": event.text,
       "description": desc.text,
+      "time":Timestamp.fromDate(_focusedDay),
       "users": emails
     });
+    final users = await databaseReference.collection("Users").where("email",arrayContains: emails).get();
     final snapShot =
     await databaseReference.collection('Users').doc(Auth()
         .getCurrentUser()
-        .uid).get();
-    print(snapShot.exists);
-    if (snapShot.exists) {
-      DocumentReference newData =
-      databaseReference.collection("Users").doc(Auth()
-          .getCurrentUser()
-          .uid);
-      newData.update({
-        DateFormat('yyyy-MM-dd').format(_focusedDay): events
+        .uid).collection("Events").doc(DateFormat('yyyy-MM-dd').format(_focusedDay)).update({
+        'EventList': events
       });
       print('Event Added');
-    }
   }
 
    static const _actionTitles = ['Create an event', 'Send reminders'];
@@ -124,57 +109,68 @@ class CalendarState extends State<CalendarPage> {
        context: context,
        builder: (context) {
          return AlertDialog(
-           content:Container(
-             height: MediaQuery.of(context).size.height/3,
-             child: Column(
-               children: [
-                 IgnorePointer(
-                   child: MyTextFieldDatePicker(
-                     prefixIcon: Icon(Icons.calendar_today_rounded),
-                     firstDate: kFirstDay,
-                     lastDate: kLastDay,
-                     initialDate: _focusedDay, onDateChanged: (DateTime value) {
-                       if(mounted)
-                       setState(() {
-                         EventDate =value;
-                       });
-                       print(EventDate);
-                   },
+           content:SingleChildScrollView(
+             physics: AlwaysScrollableScrollPhysics(),
+             child: Container(
+               height: MediaQuery.of(context).size.height/3,
+               child: Column(
+                 children: [
+                   IgnorePointer(
+                     child: MyTextFieldDatePicker(
+                       prefixIcon: Icon(Icons.calendar_today_rounded),
+                       firstDate: kFirstDay,
+                       lastDate: kLastDay,
+                       initialDate: _focusedDay, onDateChanged: (DateTime value) {
+                         if(mounted)
+                         setState(() {
+                           EventDate =value;
+                         });
+                         print(EventDate);
+                     },
+                     ),
                    ),
-                 ),
-                 SizedBox( height: 8),
-                 TextField(
-                   controller: event,
-                   decoration: InputDecoration(
-                     border: OutlineInputBorder(),
-                     labelText: "Event",
-                     hintText: "Enter Event Name"
-                   ),
-                 ),
-                 SizedBox( height: 8),
-                 TextField(
-                   controller: desc,
-                   decoration: InputDecoration(
+                   SizedBox( height: 8),
+                   TextField(
+                     controller: event,
+                     decoration: InputDecoration(
                        border: OutlineInputBorder(),
-                       labelText: "Description",
-                       hintText: "Enter Event Description"
+                       labelText: "Event",
+                       hintText: "Enter Event Name"
+                     ),
                    ),
-                 ),
-                 SizedBox( height: 8),
-                 EmailInput(parentEmails: emails,)
-               ],
+                   SizedBox( height: 8),
+                   TextField(
+                     controller: desc,
+                     decoration: InputDecoration(
+                         border: OutlineInputBorder(),
+                         labelText: "Description",
+                         hintText: "Enter Event Description"
+                     ),
+                   ),
+                   SizedBox( height: 8),
+                   EmailInput(parentEmails: emails,)
+                 ],
+               ),
              ),
            ),
            title:  Text(_actionTitles[index]),
            actions: [
              TextButton(
-               onPressed: () => Navigator.of(context).pop(),
+               onPressed: (){
+                 event.clear();
+                 desc.clear();
+                 Navigator.of(context).pop();
+                 },
                child: const Text('CANCEL',style:TextStyle(color: Colors.red),),
              ),
              TextButton(
                onPressed: (){
                  print(emails);
-                 setEvents().whenComplete(() => Navigator.of(context).pop());
+                 setEvents().whenComplete(() {
+                   getEventData();
+                   event.clear();
+                   desc.clear();
+                   Navigator.of(context).pop();});
                },
                child: const Text('OK'),),
            ],
@@ -304,7 +300,7 @@ class CalendarState extends State<CalendarPage> {
                 );
               },
             ),
-          ),
+          )
         ],
       ),
     );

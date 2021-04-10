@@ -20,7 +20,7 @@ class _EmailInputState extends State<EmailInput> {
   void initState() {
     super.initState();
     _emailController = TextEditingController();
-
+    emails.addAll(widget.parentEmails);
     focus.addListener(() {
       if (!focus.hasFocus) {
         updateEmails();
@@ -39,7 +39,7 @@ class _EmailInputState extends State<EmailInput> {
                   minWidth: 0,
                 ),
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
+                  scrollDirection: Axis.horizontal,
                   child: Column(
                     children: <Widget>[
                       ...emails
@@ -110,7 +110,7 @@ class _EmailInputState extends State<EmailInput> {
         if (!emails.contains(_emailController.text)) {
           emails.add(_emailController.text.trim());
           setState(() {
-            widget.parentEmails.addAll(emails);
+            widget.parentEmails.add(_emailController.text.trim());
           });
           widget.setList(emails);
         }
