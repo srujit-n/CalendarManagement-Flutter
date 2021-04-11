@@ -30,38 +30,32 @@ class CalendarState extends State<CalendarPage> {
   DateTime eventDate = DateTime.now();
   Map<DateTime,List<Event>> _kEvent1;
   Map res = Map();
-  Future<void> getEventData2() async{
+  Future<void> getEventData() async{
     var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
+    List<DateTime>dates=[];
     for(int i=0;i<d.docs.length;i++){
-      List temp =d.docs[i].get("EventList");
+      List temp = (d.docs[i].get("EventList"));
+      print(temp);
+      dates.add(DateFormat('yyyy-MM-dd').parse(d.docs[i].id));
       events2.add({DateFormat('yyyy-MM-dd').parse(d.docs[i].id):List.generate(
           temp.length, (index) => Event(temp[index]["Event"],temp[index]["users"]))});
     }
-    Map<DateTime,List<Event>> k;
-    print(events2[0].keys.iterator);
-  }
-  Future<void> getEventData() async{
-     var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
-     for(int i=0;i<d.docs.length;i++){
-       events.addAll(d.docs[i].get("EventList"));
-     }
-     _kEvent1 = Map.fromIterable(List.generate(events.length, (index) => index),
-     key: (i){
-       return events[i]["time"].toDate();},
-     value: (i)=> List.generate(
-         events.length, (index) => Event(events[index]["Event"],events[index]["users"])),
-     );
-     kEvents = LinkedHashMap<DateTime, List<Event>>(
-       equals: isSameDay,
-       hashCode: getHashCode,
-     )..addAll(_kEvent1);
-     print("added successfully");
+    Map<DateTime,List<Event>> k = Map.fromIterable(List.generate(events2.length, (index) => index),
+      key: (i){
+        return dates[i];
+        },
+      value: (i)=> events2[i][dates[i]]);
+    print(k);
+    kEvents = LinkedHashMap<DateTime, List<Event>>(
+      equals: isSameDay,
+      hashCode: getHashCode,
+    )..addAll(k);
+    print("added successfully");
   }
 
   @override
   void initState() {
     super.initState();
-    getEventData2();
     getEventData();
     print(events.length);
       _selectedDay = _focusedDay;
