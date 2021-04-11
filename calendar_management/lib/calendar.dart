@@ -26,7 +26,7 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
   Timestamp t;
-  DateTime EventDate = DateTime.now();
+  DateTime eventDate = DateTime.now();
   Map<DateTime,List<Event>> _kEvent1;
   Map res = Map();
   Future<void> getEventData() async{
@@ -41,6 +41,7 @@ class CalendarState extends State<CalendarPage> {
      value: (i)=> List.generate(
          events.length, (index) => Event(events[index]["Event"],events[index]["users"])),
      );
+     print(_kEvent1);
      kEvents = LinkedHashMap<DateTime, List<Event>>(
        equals: isSameDay,
        hashCode: getHashCode,
@@ -132,9 +133,9 @@ class CalendarState extends State<CalendarPage> {
                        initialDate: _focusedDay, onDateChanged: (DateTime value) {
                          if(mounted)
                          setState(() {
-                           EventDate =value;
+                           eventDate =value;
                          });
-                         print(EventDate);
+                         print(eventDate);
                      },
                      ),
                    ),
@@ -191,6 +192,14 @@ class CalendarState extends State<CalendarPage> {
        },
      );
    }
+   signout()async {
+     Auth().signOut();
+     Navigator
+         .of(context)
+         .push(new MaterialPageRoute(builder: (BuildContext context) {
+       return  LogInPage();
+     }));
+   }
 
   @override
   Widget build(BuildContext context) {
@@ -226,8 +235,7 @@ class CalendarState extends State<CalendarPage> {
                   fontSize: 20,
                 ),),
                 ElevatedButton(onPressed: (){
-                  Auth().signOut();
-                 Navigator.popAndPushNamed(context,"signOutevent");
+                  signout();
                 },
                     style: ButtonStyle(
                       foregroundColor: MaterialStateProperty.all(Colors.black),

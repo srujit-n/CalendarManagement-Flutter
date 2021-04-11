@@ -41,11 +41,6 @@ class MyApp extends StatelessWidget {
                 child: MaterialApp(
                     debugShowCheckedModeBanner: false,
                     title: 'Near Vibe',
-                    routes: {
-                      'login_screen': (context) => LogInPage(),
-                      // When navigating to the "/second" route, build the SecondScreen widget.
-                      'signOutevent': (context) => CalendarPage(),
-                    },
                     theme: ThemeData(
                       fontFamily: 'Nunito',
                       primaryColor: const Color(0xff29a39d),
@@ -57,11 +52,6 @@ class MyApp extends StatelessWidget {
                 child: MaterialApp(
                     debugShowCheckedModeBanner: false,
                     title: 'Near Vibe',
-                    routes: {
-                      'mainPage': (context) => CalendarPage(),
-                      // When navigating to the "/second" route, build the SecondScreen widget.
-                      'signOutevent': (context) => LogInPage(),
-                    },
                     theme: ThemeData(
                       fontFamily: 'Nunito',
                       primaryColor: const Color(0xff29a39d),
