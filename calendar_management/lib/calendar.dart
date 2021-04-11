@@ -5,8 +5,10 @@ import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'auth.dart';
 import 'datepicker.dart';
@@ -29,14 +31,24 @@ class CalendarState extends State<CalendarPage> {
   var Event_users;
   DateTime _selectedDay;
   Timestamp t;
-  final Email email = Email(
-    body: 'Reminder for the event u have created in Calendar app',
-    subject: 'Event Reminder',
-    recipients: ['example@example.com'],
-    isHTML: false,
-  );
-  Future sendEmail() async{
-    await FlutterEmailSender.send(email);
+  Future sendEmail(String s) async{
+    String username = 'calendarpesurr@gmail.com';
+    String password = 'pesurr%^&*';
+    final smtpServer = gmail(username, password);
+    // Create our message.
+    final message = Message()
+      ..from = Address(username, 'Your CalendarApp')
+      ..recipients.add(s)
+      ..subject = 'Event Reminder :: 😀 :: ${DateTime.now()}'
+      ..text = 'This is to remind to attend the event scheduled with you .\n '
+      ..html = "<h1>Cheers</h1>\n<p>Have a Fun day!</p>";
+    try {
+      final sendReport = await send(message, smtpServer);
+      print('Message sent: ' + sendReport.toString()); //print if the email is sent
+    } on MailerException catch (e) {
+      print('Message not sent. \n'+ e.toString()); //print if the email is not sent
+      // e.toString() will show why the email is not sending
+    }
   }
   eventUsers(List w) async{
     List temp = [];
@@ -121,18 +133,33 @@ class CalendarState extends State<CalendarPage> {
         "time": timer.text,
         "users": emails
       });
+      final sp = await databaseReference.collection('Users').doc(temp[i]).get();
+      String email =  sp.get("Email");
       final snapShot = databaseReference.collection('Users').doc(temp[i]).collection("Events").doc(
           DateFormat('yyyy-MM-dd').format(_selectedDay));
       var data = await snapShot.get();
-      if (data.exists) {
-        snapShot.update({"EventList": FieldValue.arrayUnion(events)});
-        print('Event Added');
+      int max = !data.exists?0:data.get("EventList").length;
+      if(max < 5) {
+        if (data.exists) {
+          snapShot.update({"EventList": FieldValue.arrayUnion(events)});
+          print('Event Added');
+          sendEmail(email);
+        }
+        else {
+          snapShot.set({
+            'EventList': events
+          });
+          print('Event Added');
+          sendEmail(email);
+        }
       }
-      else {
-        snapShot.set({
-          'EventList': events
-        });
-        print('Event Added');
+      else{
+        showSimpleNotification(
+          Text(
+            "User isn't available",
+          ),
+        );
+        break;
       }
     }
   }
