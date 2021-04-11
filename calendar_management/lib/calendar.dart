@@ -94,13 +94,22 @@ class CalendarState extends State<CalendarPage> {
       "users": emails
     });
     final users = await databaseReference.collection("Users").where("email",arrayContains: emails).get();
-    final snapShot =
-    await databaseReference.collection('Users').doc(Auth()
+    final snapShot = databaseReference.collection('Users').doc(Auth()
         .getCurrentUser()
-        .uid).collection("Events").doc(DateFormat('yyyy-MM-dd').format(_focusedDay)).update({
+        .uid).collection("Events").doc(DateFormat('yyyy-MM-dd').format(_focusedDay));
+    var data = await snapShot.get();
+    if(data.exists){
+    snapShot.update({
+    'EventList': events
+    });
+    print('Event Added');
+    }
+    else{
+      snapShot.set({
         'EventList': events
       });
       print('Event Added');
+    }
   }
 
    static const _actionTitles = ['Create an event', 'Send reminders'];
@@ -219,7 +228,6 @@ class CalendarState extends State<CalendarPage> {
                 ElevatedButton(onPressed: (){
                   Auth().signOut();
                  Navigator.popAndPushNamed(context,"signOutevent");
-
                 },
                     style: ButtonStyle(
                       foregroundColor: MaterialStateProperty.all(Colors.black),
