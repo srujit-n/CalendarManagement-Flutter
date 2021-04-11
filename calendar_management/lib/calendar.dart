@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 import 'auth.dart';
 import 'datepicker.dart';
 import 'fab.dart';
@@ -39,7 +38,7 @@ class CalendarState extends State<CalendarPage> {
        print(events[i]["time"].toDate());
        return events[i]["time"].toDate();},
      value: (i)=> List.generate(
-         events.length, (index) => Event(events[i]["Event"],events[i]["users"])),
+         events.length, (index) => Event(events[index]["Event"],events[index]["users"])),
      );
      kEvents = LinkedHashMap<DateTime, List<Event>>(
        equals: isSameDay,
@@ -65,9 +64,9 @@ class CalendarState extends State<CalendarPage> {
   }
 
   List<Event> _getEventsForDay(DateTime day) {
-    // Implementation example
     return kEvents[day] ?? [];
   }
+
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
@@ -166,11 +165,15 @@ class CalendarState extends State<CalendarPage> {
              TextButton(
                onPressed: (){
                  print(emails);
-                 setEvents().whenComplete(() {
-                   getEventData();
+                 setEvents().whenComplete(() {//getEventData();
                    event.clear();
                    desc.clear();
-                   Navigator.of(context).pop();});
+                   Navigator
+                       .of(context)
+                       .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) {
+                     return new CalendarPage();
+                   }));
+                 });
                },
                child: const Text('OK'),),
            ],
