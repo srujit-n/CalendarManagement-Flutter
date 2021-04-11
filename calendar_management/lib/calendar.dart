@@ -24,11 +24,11 @@ class CalendarState extends State<CalendarPage> {
   List  events=[];
   List<Map<DateTime,List<Event>>> events2=[];
   TextEditingController event = TextEditingController();
+  TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
   Timestamp t;
   DateTime eventDate = DateTime.now();
-  Map<DateTime,List<Event>> _kEvent1;
   Map res = Map();
   Future<void> getEventData() async{
     var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
@@ -38,7 +38,7 @@ class CalendarState extends State<CalendarPage> {
       print(temp);
       dates.add(DateFormat('yyyy-MM-dd').parse(d.docs[i].id));
       events2.add({DateFormat('yyyy-MM-dd').parse(d.docs[i].id):List.generate(
-          temp.length, (index) => Event(temp[index]["Event"],temp[index]["users"]))});
+          temp.length, (index) => Event(temp[index]["Event"],temp[index]["users"]," "," "))});
     }
     Map<DateTime,List<Event>> k = Map.fromIterable(List.generate(events2.length, (index) => index),
       key: (i){
@@ -57,10 +57,8 @@ class CalendarState extends State<CalendarPage> {
   void initState() {
     super.initState();
     getEventData();
-    print(events.length);
       _selectedDay = _focusedDay;
       _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay));
-
   }
 
   @override
@@ -92,16 +90,26 @@ class CalendarState extends State<CalendarPage> {
     }
   }
   Future setEvents() async {
+    print("lol");
+    List<Event>temp =(kEvents[_selectedDay]);
+    for(int i=0;i<temp.length;i++){
+      events.add({
+        "Event":temp[i].title??" ",
+        "description":temp[i].desc??" ",
+        "time":temp[i].timer??TimeOfDay.now(),
+        "users": temp[i].users??[],
+      });
+    }
     events.add({
       "Event": event.text,
       "description": desc.text,
-      "time":Timestamp.fromDate(_focusedDay),
+      "time":timer.text,
       "users": emails
     });
     final users = await databaseReference.collection("Users").where("email",arrayContains: emails).get();
     final snapShot = databaseReference.collection('Users').doc(Auth()
         .getCurrentUser()
-        .uid).collection("Events").doc(DateFormat('yyyy-MM-dd').format(_focusedDay));
+        .uid).collection("Events").doc(DateFormat('yyyy-MM-dd').format(_selectedDay));
     var data = await snapShot.get();
     if(data.exists){
     snapShot.update({
@@ -116,6 +124,18 @@ class CalendarState extends State<CalendarPage> {
       print('Event Added');
     }
   }
+  Future<String> showPicker() async {
+    TimeOfDay initialTime = TimeOfDay.now();
+     TimeOfDay t = await showTimePicker(
+        context: context,
+        initialTime: initialTime,
+        builder: (BuildContext context, Widget child) {
+          return child;
+        }
+    );
+     String res = t.hour.toString()+":"+t.minute.toString();
+     return res;
+  }
 
    static const _actionTitles = ['Create an event', 'Send reminders'];
    void _showAction(BuildContext context, int index) {
@@ -126,7 +146,7 @@ class CalendarState extends State<CalendarPage> {
            content:SingleChildScrollView(
              physics: AlwaysScrollableScrollPhysics(),
              child: Container(
-               height: MediaQuery.of(context).size.height/3,
+               height: MediaQuery.of(context).size.height/2,
                child: Column(
                  children: [
                    IgnorePointer(
@@ -134,7 +154,7 @@ class CalendarState extends State<CalendarPage> {
                        prefixIcon: Icon(Icons.calendar_today_rounded),
                        firstDate: kFirstDay,
                        lastDate: kLastDay,
-                       initialDate: _focusedDay, onDateChanged: (DateTime value) {
+                       initialDate: _selectedDay, onDateChanged: (DateTime value) {
                          if(mounted)
                          setState(() {
                            eventDate =value;
@@ -145,11 +165,25 @@ class CalendarState extends State<CalendarPage> {
                    ),
                    SizedBox( height: 8),
                    TextField(
-                     controller: event,
+                     onTap: (){
+                       setState(() {
+                          showPicker().then((value) => timer.text = value);
+                       });
+                     },
+                     controller: timer,
                      decoration: InputDecoration(
                        border: OutlineInputBorder(),
-                       labelText: "Event",
-                       hintText: "Enter Event Name"
+                       labelText: "Time",
+                       hintText: "Enter Time"
+                     ),
+                   ),
+                   SizedBox( height: 8),
+                   TextField(
+                     controller: event,
+                     decoration: InputDecoration(
+                         border: OutlineInputBorder(),
+                         labelText: "Event",
+                         hintText: "Enter Event Name"
                      ),
                    ),
                    SizedBox( height: 8),
@@ -162,7 +196,7 @@ class CalendarState extends State<CalendarPage> {
                      ),
                    ),
                    SizedBox( height: 8),
-                   EmailInput(parentEmails: emails,)
+                   Expanded(child: EmailInput(parentEmails: emails,))
                  ],
                ),
              ),

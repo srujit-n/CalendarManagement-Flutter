@@ -7,8 +7,10 @@ import 'auth.dart';
 /// Example event class.
 class Event {
   final String title;
-  final List Users;
-  const Event( this.title, this.Users);
+  final List users;
+  final String desc;
+  final String timer;
+  const Event( this.title, this.users,this.timer,this.desc);
 
   @override
   String toString() => title;
