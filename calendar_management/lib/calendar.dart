@@ -22,6 +22,7 @@ class CalendarState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   List  events=[];
+  List<Map<DateTime,List<Event>>> events2=[];
   TextEditingController event = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
@@ -29,6 +30,16 @@ class CalendarState extends State<CalendarPage> {
   DateTime eventDate = DateTime.now();
   Map<DateTime,List<Event>> _kEvent1;
   Map res = Map();
+  Future<void> getEventData2() async{
+    var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
+    for(int i=0;i<d.docs.length;i++){
+      List temp =d.docs[i].get("EventList");
+      events2.add({DateFormat('yyyy-MM-dd').parse(d.docs[i].id):List.generate(
+          temp.length, (index) => Event(temp[index]["Event"],temp[index]["users"]))});
+    }
+    Map<DateTime,List<Event>> k;
+    print(events2[0].keys.iterator);
+  }
   Future<void> getEventData() async{
      var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
      for(int i=0;i<d.docs.length;i++){
@@ -36,12 +47,10 @@ class CalendarState extends State<CalendarPage> {
      }
      _kEvent1 = Map.fromIterable(List.generate(events.length, (index) => index),
      key: (i){
-       print(events[i]["time"].toDate());
        return events[i]["time"].toDate();},
      value: (i)=> List.generate(
          events.length, (index) => Event(events[index]["Event"],events[index]["users"])),
      );
-     print(_kEvent1);
      kEvents = LinkedHashMap<DateTime, List<Event>>(
        equals: isSameDay,
        hashCode: getHashCode,
@@ -52,6 +61,7 @@ class CalendarState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
+    getEventData2();
     getEventData();
     print(events.length);
       _selectedDay = _focusedDay;
