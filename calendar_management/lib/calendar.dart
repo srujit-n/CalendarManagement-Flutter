@@ -40,8 +40,7 @@ class CalendarState extends State<CalendarPage> {
       ..from = Address(username, 'Your CalendarApp')
       ..recipients.add(s)
       ..subject = 'Event Reminder :: 😀 :: ${DateTime.now()}'
-      ..text = 'This is to remind to attend the event scheduled with you .\n '
-      ..html = "<h1>Cheers</h1>\n<p>Have a Fun day!</p>";
+      ..html = "<h1>Reminder</h1>\n<p>This is to remind to attend the event scheduled with you .</p>";
     try {
       final sendReport = await send(message, smtpServer);
       print('Message sent: ' + sendReport.toString()); //print if the email is sent
