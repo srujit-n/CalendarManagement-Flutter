@@ -4,6 +4,7 @@ import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'auth.dart';
@@ -206,6 +207,29 @@ class CalendarState extends State<CalendarPage> {
       ),
       body: Column(
         children: [
+
+          Container(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Username : ${Auth().getCurrentUser().displayName}",style: TextStyle(
+                  fontSize: 20,
+                ),),
+                ElevatedButton(onPressed: (){
+                  Auth().signOut();
+                 Navigator.popAndPushNamed(context,"signOutevent");
+
+                },
+                    style: ButtonStyle(
+                      foregroundColor: MaterialStateProperty.all(Colors.black),
+                      backgroundColor: MaterialStateProperty.all( Color.fromRGBO(255, 197, 1, 1)),
+                    ),
+                    child: Text("Log Out")),
+              ],
+            ),
+          ),
+          Divider(thickness: 2,),
           TableCalendar(
             firstDay: kFirstDay,
             lastDay: kLastDay,
@@ -261,9 +285,10 @@ class CalendarState extends State<CalendarPage> {
             eventLoader: _getEventsForDay,
             startingDayOfWeek: StartingDayOfWeek.monday,
             calendarStyle: CalendarStyle(
-
-              // Use `CalendarStyle` to customize the UI
               outsideDaysVisible: true,
+            ),
+            headerStyle: HeaderStyle(
+              formatButtonVisible: false
             ),
             onDaySelected: _onDaySelected,
             onFormatChanged: (format) {

@@ -1,4 +1,5 @@
 import 'package:calendar_management/LogIn.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 // Import the firebase_core plugin
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+    Stream s = FirebaseAuth.instance.authStateChanges();
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     return FutureBuilder(
@@ -33,11 +35,17 @@ class MyApp extends StatelessWidget {
 
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
+
           if (Auth().getCurrentUser() != null) {
             return OverlaySupport(
                 child: MaterialApp(
                     debugShowCheckedModeBanner: false,
                     title: 'Near Vibe',
+                    routes: {
+                      'login_screen': (context) => LogInPage(),
+                      // When navigating to the "/second" route, build the SecondScreen widget.
+                      'signOutevent': (context) => CalendarPage(),
+                    },
                     theme: ThemeData(
                       fontFamily: 'Nunito',
                       primaryColor: const Color(0xff29a39d),
@@ -49,6 +57,11 @@ class MyApp extends StatelessWidget {
                 child: MaterialApp(
                     debugShowCheckedModeBanner: false,
                     title: 'Near Vibe',
+                    routes: {
+                      'mainPage': (context) => CalendarPage(),
+                      // When navigating to the "/second" route, build the SecondScreen widget.
+                      'signOutevent': (context) => LogInPage(),
+                    },
                     theme: ThemeData(
                       fontFamily: 'Nunito',
                       primaryColor: const Color(0xff29a39d),
