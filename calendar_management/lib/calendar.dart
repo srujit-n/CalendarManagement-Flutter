@@ -5,6 +5,7 @@ import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'auth.dart';
@@ -21,17 +22,37 @@ class CalendarState extends State<CalendarPage> {
   ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
-  List  events=[];
   List<Map<DateTime,List<Event>>> events2=[];
   TextEditingController event = TextEditingController();
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
+  var Event_users;
   DateTime _selectedDay;
   Timestamp t;
+  final Email email = Email(
+    body: 'Reminder for the event u have created in Calendar app',
+    subject: 'Event Reminder',
+    recipients: ['example@example.com'],
+    isHTML: false,
+  );
+  Future sendEmail() async{
+    await FlutterEmailSender.send(email);
+  }
+  eventUsers(List w) async{
+    List temp = [];
+    final users = await databaseReference.collection("Users").get();
+    for(int i=0;i<users.docs.length;i++){
+     var t = users.docs[i].get("Email");
+      if(w.contains(t)){
+        temp.add(users.docs[i].id);
+      }
+    }
+    return temp;
+  }
   DateTime eventDate = DateTime.now();
   Map res = Map();
-  Future<void> getEventData() async{
-    var d = await databaseReference.collection("Users").doc(Auth().getCurrentUser().uid).collection("Events").get();
+  Future<void> getEventData(String s) async{
+    var d = await databaseReference.collection("Users").doc(s).collection("Events").get();
     List<DateTime>dates=[];
     for(int i=0;i<d.docs.length;i++){
       List temp = (d.docs[i].get("EventList"));
@@ -56,7 +77,7 @@ class CalendarState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    getEventData();
+    getEventData(Auth().getCurrentUser().uid);
       _selectedDay = _focusedDay;
       _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay));
   }
@@ -90,51 +111,43 @@ class CalendarState extends State<CalendarPage> {
     }
   }
   Future setEvents() async {
-    print("lol");
-    List<Event>temp =(kEvents[_selectedDay]);
-    for(int i=0;i<temp.length;i++){
+    List temp = await eventUsers(emails);
+    for(int i=0;i<temp.length;i++) {
+      List events = [];
+      print("lol");
       events.add({
-        "Event":temp[i].title??" ",
-        "description":temp[i].desc??" ",
-        "time":temp[i].timer??TimeOfDay.now(),
-        "users": temp[i].users??[],
+        "Event": event.text,
+        "description": desc.text,
+        "time": timer.text,
+        "users": emails
       });
-    }
-    events.add({
-      "Event": event.text,
-      "description": desc.text,
-      "time":timer.text,
-      "users": emails
-    });
-    final users = await databaseReference.collection("Users").where("email",arrayContains: emails).get();
-    final snapShot = databaseReference.collection('Users').doc(Auth()
-        .getCurrentUser()
-        .uid).collection("Events").doc(DateFormat('yyyy-MM-dd').format(_selectedDay));
-    var data = await snapShot.get();
-    if(data.exists){
-    snapShot.update({
-    'EventList': events
-    });
-    print('Event Added');
-    }
-    else{
-      snapShot.set({
-        'EventList': events
-      });
-      print('Event Added');
+      final snapShot = databaseReference.collection('Users').doc(temp[i]).collection("Events").doc(
+          DateFormat('yyyy-MM-dd').format(_selectedDay));
+      var data = await snapShot.get();
+      if (data.exists) {
+        snapShot.update({"EventList": FieldValue.arrayUnion(events)});
+        print('Event Added');
+      }
+      else {
+        snapShot.set({
+          'EventList': events
+        });
+        print('Event Added');
+      }
     }
   }
   Future<String> showPicker() async {
     TimeOfDay initialTime = TimeOfDay.now();
-     TimeOfDay t = await showTimePicker(
+    TimeOfDay t = await showTimePicker(
         context: context,
         initialTime: initialTime,
         builder: (BuildContext context, Widget child) {
           return child;
         }
     );
-     String res = t.hour.toString()+":"+t.minute.toString();
-     return res;
+    String res = t.format(context);
+    return res;
+
   }
 
    static const _actionTitles = ['Create an event', 'Send reminders'];
@@ -196,7 +209,11 @@ class CalendarState extends State<CalendarPage> {
                      ),
                    ),
                    SizedBox( height: 8),
-                   Expanded(child: EmailInput(parentEmails: emails,))
+                   Expanded(child: EmailInput(parentEmails: emails,setList: (e){
+                            setState(() {
+                              emails=e;
+                            });
+                   },))
                  ],
                ),
              ),

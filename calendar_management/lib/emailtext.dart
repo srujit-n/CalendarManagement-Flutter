@@ -109,9 +109,7 @@ class _EmailInputState extends State<EmailInput> {
       if (validateEmail(_emailController.text)) {
         if (!emails.contains(_emailController.text)) {
           emails.add(_emailController.text.trim());
-          setState(() {
-            widget.parentEmails.add(_emailController.text.trim());
-          });
+          print(emails);
           widget.setList(emails);
         }
         _emailController.clear();
