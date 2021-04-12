@@ -10,7 +10,8 @@ class Event {
   final List users;
   final String desc;
   final String timer;
-  const Event( this.title, this.users,this.timer,this.desc);
+  final String creator;
+  const Event( this.title, this.users,this.desc,this.timer,this.creator);
 
   @override
   String toString() => title;

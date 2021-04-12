@@ -12,7 +12,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'auth.dart';
 import 'datepicker.dart';
-import 'fab.dart';
 
 class CalendarPage extends StatefulWidget{
   @override
@@ -28,7 +27,6 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController event = TextEditingController();
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
-  var Event_users;
   DateTime _selectedDay;
   Timestamp t;
   Future sendEmail(String s) async{
@@ -70,7 +68,7 @@ class CalendarState extends State<CalendarPage> {
       print(temp);
       dates.add(DateFormat('yyyy-MM-dd').parse(d.docs[i].id));
       events2.add({DateFormat('yyyy-MM-dd').parse(d.docs[i].id):List.generate(
-          temp.length, (index) => Event(temp[index]["Event"],temp[index]["users"]," "," "))});
+          temp.length, (index) => Event(temp[index]["Event"],temp[index]["users"],temp[index]["description"],temp[index]["time"],temp[index]["CreatedBy"]))});
     }
     Map<DateTime,List<Event>> k = Map.fromIterable(List.generate(events2.length, (index) => index),
       key: (i){
@@ -130,6 +128,7 @@ class CalendarState extends State<CalendarPage> {
         "Event": event.text,
         "description": desc.text,
         "time": timer.text,
+        "CreatedBy":emails[0],
         "users": emails
       });
       final sp = await databaseReference.collection('Users').doc(temp[i]).get();
@@ -175,9 +174,34 @@ class CalendarState extends State<CalendarPage> {
     return res;
 
   }
+  void _deleteEvent(Event e){
+    showDialog(context: context, builder:(context){
+      return AlertDialog(
+          title: Text("Are you sure you want to delete the event?"),
+          actions: [
+        TextButton(
+          onPressed: ()=> Navigator.of(context).pop(),
+          child: const Text('Cancel',style:TextStyle(color: Colors.red),),
+        ),
+        TextButton(
+          onPressed: () async{
+            List temp = kEvents[_selectedDay];
+            temp.remove(e);
+            databaseReference.collection('Users').doc(Auth().getCurrentUser().uid).collection("Events").doc(
+                DateFormat('yyyy-MM-dd').format(_selectedDay)).update({"EventList":temp}).whenComplete(() =>  Navigator
+                .of(context)
+                .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) {
+              return new CalendarPage();
+            })));
+          },
+          child: const Text('Yes'),),
+      ]
+      );
+    });
+  }
 
-   static const _actionTitles = ['Create an event', 'Send reminders'];
-   void _showAction(BuildContext context, int index) {
+   static const _actionTitle = 'Create an event';
+   void _showAction(BuildContext context) {
      showDialog<void>(
        context: context,
        builder: (context) {
@@ -244,7 +268,7 @@ class CalendarState extends State<CalendarPage> {
                ),
              ),
            ),
-           title:  Text(_actionTitles[index]),
+           title:  Text(_actionTitle),
            actions: [
              TextButton(
                onPressed: (){
@@ -291,22 +315,13 @@ class CalendarState extends State<CalendarPage> {
         backgroundColor: Colors.black,
         title: Text('Calendar'),
       ),
-      floatingActionButton: ExpandableFab(
-        distance: 100.0,
-        children: [
-          ActionButton(
-            onPressed: () => _showAction(context, 1),
-            icon: const Icon(Icons.mail_outline_rounded),
-          ),
-          ActionButton(
-            onPressed: () => _showAction(context, 0),
-            icon: const Icon(Icons.add),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color.fromRGBO(255, 197, 1, 1),
+        onPressed: () => _showAction(context),
+        child:Icon(Icons.event_note_rounded,color: Colors.black,),
       ),
       body: Column(
         children: [
-
           Container(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,12 +428,26 @@ class CalendarState extends State<CalendarPage> {
                         vertical: 4.0,
                       ),
                       decoration: BoxDecoration(
-                        border: Border.all(),
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: ListTile(
-                        onTap: () => print('${value[index]}'),
-                        title: Text('${value[index]}'),
+                        onLongPress: ()=>_deleteEvent(value[index]),
+                        onTap: () {
+                          if(value[index].creator==emails[0]){
+                                for(int i=0;i<value[index].users.length;i++){
+                                  sendEmail(value[index].users[i]);
+                                }
+                          }
+                          else{
+                            showSimpleNotification(Text("You can't send reminders since you didn't create the event"),
+                                background: Color(0xff29a39d));
+                          }
+                        },
+                        leading: Text((index+1).toString(),style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                        title: Text('${value[index].title}',style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                        subtitle: Text(value[index].desc,style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                        trailing: Text(value[index].timer,style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
                       ),
                     );
                   },
