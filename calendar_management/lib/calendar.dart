@@ -3,6 +3,7 @@ import 'package:calendar_management/LogIn.dart';
 import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +27,7 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
+  RegExp time = new RegExp(r"^(00|0[0-9]|1[0-9]|2[0-4]):[0-5][0-9]$");
   List tapTitles = ["Are you sure you want to delete the event?","Are you sure you want to send  the event reminders?"];
   Timestamp t;
   DateTime eventDate = DateTime.now();
@@ -101,6 +103,7 @@ class CalendarState extends State<CalendarPage> {
         final sp = await databaseReference.collection('Users')
             .doc(temp[i])
             .get();
+        String name = sp.get("Name");
         String email = sp.get("Email");
         final snapShot = databaseReference.collection('Users')
             .doc(temp[i])
@@ -111,24 +114,30 @@ class CalendarState extends State<CalendarPage> {
         int max = !data.exists ? 0 : data
             .get("EventList")
             .length;
-        if (max < 5) {
+        if (max < 0) {
           if (data.exists) {
             snapShot.update({"EventList": FieldValue.arrayUnion(events)});
-            print('Event Added');
+            showSimpleNotification(
+                Text(
+                  "Event Added"),background: Color(0xff29a39d)
+            );
             FunctionUtils().sendEmail(email);
           }
           else {
             snapShot.set({
               'EventList': events
             });
-            print('Event Added');
+            showSimpleNotification(
+                Text(
+                  "Event Added",),background: Color(0xff29a39d)
+            );
             FunctionUtils().sendEmail(email);
           }
         }
         else {
           showSimpleNotification(
             Text(
-              "User isn't available",),background: Color(0xff29a39d)
+              "$name isn't available",),background: Color(0xff29a39d)
           );
           break;
         }
@@ -195,7 +204,7 @@ class CalendarState extends State<CalendarPage> {
            content:SingleChildScrollView(
              physics: AlwaysScrollableScrollPhysics(),
              child: Container(
-               width: MediaQuery.of(context).size.width*0.9,
+               width: MediaQuery.of(context).size.width,
                height: MediaQuery.of(context).size.height/2,
                child: Column(
                  children: [
@@ -246,7 +255,9 @@ class CalendarState extends State<CalendarPage> {
                      ),
                    ),
                    SizedBox( height: 8),
-                   Expanded(child: EmailInput(parentEmails: emails,setList: (e){
+                   Container(
+                     width: MediaQuery.of(context).size.width,
+                       child: EmailInput(parentEmails: emails,setList: (e){
                             setState(() {
                               emails=e;
                             });
@@ -261,27 +272,26 @@ class CalendarState extends State<CalendarPage> {
                onPressed: (){
                  event.clear();
                  desc.clear();
+                 timer.clear();
                  Navigator.of(context).pop();
                  },
                child: const Text('CANCEL',style:TextStyle(color: Colors.red),),
              ),
              TextButton(
                onPressed: () {
-                 if(timer.text.isEmpty){
+                 if(timer.text.isEmpty || !(time.hasMatch(timer.text))){
                    showSimpleNotification(Text("Please enter a valid time to the event"));
                  }
+
                  else if(event.text.isEmpty){
                    showSimpleNotification(Text("Please enter a valid title to the event"));
                  }
                  else if(desc.text.isEmpty){
                    showSimpleNotification(Text("Please enter description to the event"));
                  }
-                 else if(emails.isEmpty){
-                   showSimpleNotification(Text("An event must have minimum of one person associated with it"));
-                 }
                  else{
                  print(emails);
-                 setEvents().whenComplete(() {//getEventData();
+                 setEvents().whenComplete(() {
                  event.clear();
                  desc.clear();
                  Navigator

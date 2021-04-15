@@ -35,9 +35,6 @@ class _EmailInputState extends State<EmailInput> {
           child: Column(
             children: <Widget>[
               Container(
-                constraints: BoxConstraints(
-                  minWidth: 0,
-                ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Column(
