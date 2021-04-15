@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'package:calendar_management/LogIn.dart';
 import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
+import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ class CalendarState extends State<CalendarPage> {
   Future<void> getEventData(String s) async{
     var d = await databaseReference.collection("Users").doc(s).collection("Events").get();
     List<DateTime>dates=[];
+    events2=[];
     for(int i=0;i<d.docs.length;i++){
       List temp = (d.docs[i].get("EventList"));
       print(temp);
@@ -114,7 +116,7 @@ class CalendarState extends State<CalendarPage> {
         int max = !data.exists ? 0 : data
             .get("EventList")
             .length;
-        if (max < 0) {
+        if (max <= 3) {
           if (data.exists) {
             snapShot.update({"EventList": FieldValue.arrayUnion(events)});
             showSimpleNotification(
@@ -169,19 +171,41 @@ class CalendarState extends State<CalendarPage> {
         TextButton(
           onPressed: () async{
             if(i==0) {
-              List temp = kEvents[_selectedDay];
-              temp.remove(e);
-              databaseReference.collection('Users').doc(Auth()
-                  .getCurrentUser()
-                  .uid).collection("Events").doc(
-                  DateFormat('yyyy-MM-dd').format(_selectedDay)).update(
-                  {"EventList": temp}).whenComplete(() =>
+              List users  =await FunctionUtils().eventUsers(e.users);
+              print(users);
+              Map temp = {
+                "CreatedBy": e.creator,
+                "Event": e.title,
+                "description": e.desc,
+                "time": e.timer,
+                "users": e.users
+              };
+              for(int i=0;i<users.length;i++){
+                final snapshot = databaseReference.collection('Users')
+                    .doc(users[i])
+                    .collection("Events")
+                    .doc(
+                    DateFormat('yyyy-MM-dd').format(_selectedDay));
+                await snapshot.get().then((value){
+                  List events = value.data()["EventList"];
+                  print(events);
+                  events.removeWhere((element){
+                    if(element["time"]==temp["time"]){
+                      return true;
+                    }
+                    return false;
+                  });
+                  print(events);
+                 snapshot.update({"EventList":events});
+                });
+              }
+
                   Navigator
                       .of(context)
                       .pushReplacement(
                       new MaterialPageRoute(builder: (BuildContext context) {
                         return new CalendarPage();
-                      })));
+                      }));
             }
             else{
               for(int i=0;i<e.users.length;i++){
@@ -282,7 +306,6 @@ class CalendarState extends State<CalendarPage> {
                  if(timer.text.isEmpty || !(time.hasMatch(timer.text))){
                    showSimpleNotification(Text("Please enter a valid time to the event"));
                  }
-
                  else if(event.text.isEmpty){
                    showSimpleNotification(Text("Please enter a valid title to the event"));
                  }
@@ -443,7 +466,15 @@ class CalendarState extends State<CalendarPage> {
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: ListTile(
-                        onLongPress: ()=>_TapEvents(value[index],0),
+                        onLongPress: (){
+                          if(value[index].creator==emails[0]){
+                            _TapEvents(value[index], 0);
+                          }
+                          else{
+                            showSimpleNotification(Text("You can't delete event since you aren't the owner of it"),
+                                background: Color(0xff29a39d));
+                          }
+                        },
                         onTap: () {
                           if(value[index].creator==emails[0]){
                             _TapEvents(value[index], 1);
