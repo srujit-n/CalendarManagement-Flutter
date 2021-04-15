@@ -76,7 +76,7 @@ class _LogInPageState extends State<LogInPage> {
                         Text(
                             "Email and Password is not registered for this email ID. Please use " +
                                 loginMethods
-                                    .toString()), //TODO: Clean up output
+                                    .toString()),
                         background: Color(0xff29a39d));
                     Navigator.pop(context);
                   }

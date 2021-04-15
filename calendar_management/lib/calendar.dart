@@ -6,8 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'auth.dart';
@@ -28,36 +26,8 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
+  List tapTitles = ["Are you sure you want to delete the event?","Are you sure you want to send  the event reminders?"];
   Timestamp t;
-  Future sendEmail(String s) async{
-    String username = 'calendarpesurr@gmail.com';
-    String password = 'pesurr%^&*';
-    final smtpServer = gmail(username, password);
-    // Create our message.
-    final message = Message()
-      ..from = Address(username, 'Your CalendarApp')
-      ..recipients.add(s)
-      ..subject = 'Event Reminder :: 😀 :: ${DateTime.now()}'
-      ..html = "<h1>Reminder</h1>\n<p>This is to remind to attend the event scheduled with you .</p>";
-    try {
-      final sendReport = await send(message, smtpServer);
-      print('Message sent: ' + sendReport.toString()); //print if the email is sent
-    } on MailerException catch (e) {
-      print('Message not sent. \n'+ e.toString()); //print if the email is not sent
-      // e.toString() will show why the email is not sending
-    }
-  }
-  eventUsers(List w) async{
-    List temp = [];
-    final users = await databaseReference.collection("Users").get();
-    for(int i=0;i<users.docs.length;i++){
-     var t = users.docs[i].get("Email");
-      if(w.contains(t)){
-        temp.add(users.docs[i].id);
-      }
-    }
-    return temp;
-  }
   DateTime eventDate = DateTime.now();
   Map res = Map();
   Future<void> getEventData(String s) async{
@@ -78,7 +48,7 @@ class CalendarState extends State<CalendarPage> {
     print(k);
     kEvents = LinkedHashMap<DateTime, List<Event>>(
       equals: isSameDay,
-      hashCode: getHashCode,
+      hashCode: FunctionUtils().getHashCode,
     )..addAll(k);
     print("added successfully");
   }
@@ -111,53 +81,57 @@ class CalendarState extends State<CalendarPage> {
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
-  Future sendReminders(DateTime d) async{
-    var s =await databaseReference.collection('Users').doc(Auth()
-        .getCurrentUser()
-        .uid).get();
-    if (s.exists) {
-      s.get( DateFormat('yyyy-MM-dd').format(_focusedDay));
-    }
-  }
   Future setEvents() async {
-    List temp = await eventUsers(emails);
-    for(int i=0;i<temp.length;i++) {
-      List events = [];
-      print("lol");
-      events.add({
-        "Event": event.text,
-        "description": desc.text,
-        "time": timer.text,
-        "CreatedBy":emails[0],
-        "users": emails
-      });
-      final sp = await databaseReference.collection('Users').doc(temp[i]).get();
-      String email =  sp.get("Email");
-      final snapShot = databaseReference.collection('Users').doc(temp[i]).collection("Events").doc(
-          DateFormat('yyyy-MM-dd').format(_selectedDay));
-      var data = await snapShot.get();
-      int max = !data.exists?0:data.get("EventList").length;
-      if(max < 5) {
-        if (data.exists) {
-          snapShot.update({"EventList": FieldValue.arrayUnion(events)});
-          print('Event Added');
-          sendEmail(email);
+    List temp = await FunctionUtils().eventUsers(emails);
+    int today = FunctionUtils().calculateDifference(_selectedDay);
+    if(today<0){
+      showSimpleNotification(Text("You cannot create a event before today!"));
+    }
+    else {
+      for (int i = 0; i < temp.length; i++) {
+        List events = [];
+        print("lol");
+        events.add({
+          "Event": event.text,
+          "description": desc.text,
+          "time": timer.text,
+          "CreatedBy": emails[0],
+          "users": emails
+        });
+        final sp = await databaseReference.collection('Users')
+            .doc(temp[i])
+            .get();
+        String email = sp.get("Email");
+        final snapShot = databaseReference.collection('Users')
+            .doc(temp[i])
+            .collection("Events")
+            .doc(
+            DateFormat('yyyy-MM-dd').format(_selectedDay));
+        var data = await snapShot.get();
+        int max = !data.exists ? 0 : data
+            .get("EventList")
+            .length;
+        if (max < 5) {
+          if (data.exists) {
+            snapShot.update({"EventList": FieldValue.arrayUnion(events)});
+            print('Event Added');
+            FunctionUtils().sendEmail(email);
+          }
+          else {
+            snapShot.set({
+              'EventList': events
+            });
+            print('Event Added');
+            FunctionUtils().sendEmail(email);
+          }
         }
         else {
-          snapShot.set({
-            'EventList': events
-          });
-          print('Event Added');
-          sendEmail(email);
+          showSimpleNotification(
+            Text(
+              "User isn't available",),background: Color(0xff29a39d)
+          );
+          break;
         }
-      }
-      else{
-        showSimpleNotification(
-          Text(
-            "User isn't available",
-          ),
-        );
-        break;
       }
     }
   }
@@ -174,10 +148,10 @@ class CalendarState extends State<CalendarPage> {
     return res;
 
   }
-  void _deleteEvent(Event e){
+  void _TapEvents(Event e ,int i){
     showDialog(context: context, builder:(context){
       return AlertDialog(
-          title: Text("Are you sure you want to delete the event?"),
+          title: Text(tapTitles[i]),
           actions: [
         TextButton(
           onPressed: ()=> Navigator.of(context).pop(),
@@ -185,14 +159,26 @@ class CalendarState extends State<CalendarPage> {
         ),
         TextButton(
           onPressed: () async{
-            List temp = kEvents[_selectedDay];
-            temp.remove(e);
-            databaseReference.collection('Users').doc(Auth().getCurrentUser().uid).collection("Events").doc(
-                DateFormat('yyyy-MM-dd').format(_selectedDay)).update({"EventList":temp}).whenComplete(() =>  Navigator
-                .of(context)
-                .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) {
-              return new CalendarPage();
-            })));
+            if(i==0) {
+              List temp = kEvents[_selectedDay];
+              temp.remove(e);
+              databaseReference.collection('Users').doc(Auth()
+                  .getCurrentUser()
+                  .uid).collection("Events").doc(
+                  DateFormat('yyyy-MM-dd').format(_selectedDay)).update(
+                  {"EventList": temp}).whenComplete(() =>
+                  Navigator
+                      .of(context)
+                      .pushReplacement(
+                      new MaterialPageRoute(builder: (BuildContext context) {
+                        return new CalendarPage();
+                      })));
+            }
+            else{
+              for(int i=0;i<e.users.length;i++){
+                FunctionUtils().sendEmail(e.users[i]);
+              }
+            }
           },
           child: const Text('Yes'),),
       ]
@@ -279,17 +265,28 @@ class CalendarState extends State<CalendarPage> {
                child: const Text('CANCEL',style:TextStyle(color: Colors.red),),
              ),
              TextButton(
-               onPressed: (){
+               onPressed: () {
+                 if(timer.text.isEmpty){
+                   showSimpleNotification(Text("Please enter a valid time to the event"));
+                 }
+                 if(event.text.isEmpty){
+                   showSimpleNotification(Text("Please enter a valid title to the event"));
+                 }
+                 if(desc.text.isEmpty){
+                   showSimpleNotification(Text("Please enter description to the event"));
+                 }
+                 else{
                  print(emails);
                  setEvents().whenComplete(() {//getEventData();
-                   event.clear();
-                   desc.clear();
-                   Navigator
-                       .of(context)
-                       .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) {
-                     return new CalendarPage();
-                   }));
+                 event.clear();
+                 desc.clear();
+                 Navigator
+                     .of(context)
+                     .pushReplacement(new MaterialPageRoute(builder: (BuildContext context) {
+                 return new CalendarPage();
+                 }));
                  });
+                 }
                },
                child: const Text('OK'),),
            ],
@@ -432,12 +429,10 @@ class CalendarState extends State<CalendarPage> {
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: ListTile(
-                        onLongPress: ()=>_deleteEvent(value[index]),
+                        onLongPress: ()=>_TapEvents(value[index],0),
                         onTap: () {
                           if(value[index].creator==emails[0]){
-                                for(int i=0;i<value[index].users.length;i++){
-                                  sendEmail(value[index].users[i]);
-                                }
+                            _TapEvents(value[index], 1);
                           }
                           else{
                             showSimpleNotification(Text("You can't send reminders since you didn't create the event"),
