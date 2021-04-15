@@ -195,6 +195,7 @@ class CalendarState extends State<CalendarPage> {
            content:SingleChildScrollView(
              physics: AlwaysScrollableScrollPhysics(),
              child: Container(
+               width: MediaQuery.of(context).size.width*0.9,
                height: MediaQuery.of(context).size.height/2,
                child: Column(
                  children: [
@@ -269,11 +270,14 @@ class CalendarState extends State<CalendarPage> {
                  if(timer.text.isEmpty){
                    showSimpleNotification(Text("Please enter a valid time to the event"));
                  }
-                 if(event.text.isEmpty){
+                 else if(event.text.isEmpty){
                    showSimpleNotification(Text("Please enter a valid title to the event"));
                  }
-                 if(desc.text.isEmpty){
+                 else if(desc.text.isEmpty){
                    showSimpleNotification(Text("Please enter description to the event"));
+                 }
+                 else if(emails.isEmpty){
+                   showSimpleNotification(Text("An event must have minimum of one person associated with it"));
                  }
                  else{
                  print(emails);
