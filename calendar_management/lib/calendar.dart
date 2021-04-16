@@ -26,7 +26,8 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
-  RegExp time = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9]) ?((a|p)m|(A|P)M)$");
+  RegExp time_24H = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$");
+  RegExp time_12H = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9]) ?((a|p)m|(A|P)M)$");
   List tapTitles = ["Are you sure you want to delete the event?","Are you sure you want to send  the event reminders?"];
   Timestamp t;
   DateTime eventDate = DateTime.now();
@@ -301,7 +302,7 @@ class CalendarState extends State<CalendarPage> {
              ),
              TextButton(
                onPressed: () {
-                 if(timer.text.isEmpty || !(time.hasMatch(timer.text))){
+                 if(timer.text.isEmpty || !(time_12H.hasMatch(timer.text) || time_24H.hasMatch(timer.text))){
                    showSimpleNotification(Text("Please enter a valid time to the event"));
                  }
                  else if(event.text.isEmpty){
