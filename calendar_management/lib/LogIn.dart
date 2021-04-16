@@ -275,7 +275,6 @@ class _LogInPageState extends State<LogInPage> {
                 margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
                 child: TextField(
                   keyboardType: TextInputType.text,
-                  obscureText: true,
                   focusNode: emailFocus,
                   controller: email,
                   decoration: new InputDecoration(
@@ -321,6 +320,7 @@ class _LogInPageState extends State<LogInPage> {
                 child: TextField(
                   focusNode: passwordFocus,
                   controller: password,
+                  obscureText: true,
                   decoration: new InputDecoration(
                     contentPadding: EdgeInsets.fromLTRB(1, 0, 0, 4),
                     fillColor: Color(0xff131415),

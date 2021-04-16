@@ -2,9 +2,7 @@ import 'dart:collection';
 import 'package:calendar_management/LogIn.dart';
 import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
-import 'package:calendar_management/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +26,7 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
-  RegExp time = new RegExp(r"^(00|0[0-9]|1[0-9]|2[0-4]):[0-5][0-9]$");
+  RegExp time = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$");
   List tapTitles = ["Are you sure you want to delete the event?","Are you sure you want to send  the event reminders?"];
   Timestamp t;
   DateTime eventDate = DateTime.now();
