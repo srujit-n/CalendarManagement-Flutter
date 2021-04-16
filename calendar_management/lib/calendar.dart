@@ -26,7 +26,7 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
   DateTime _selectedDay;
-  RegExp time = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$");
+  RegExp time = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9]) ?((a|p)m|(A|P)M)$");
   List tapTitles = ["Are you sure you want to delete the event?","Are you sure you want to send  the event reminders?"];
   Timestamp t;
   DateTime eventDate = DateTime.now();
