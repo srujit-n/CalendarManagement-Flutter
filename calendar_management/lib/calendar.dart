@@ -146,7 +146,7 @@ class CalendarState extends State<CalendarPage> {
       }
     }
   }
-  Future<String> showPicker() async {
+  Future<String> showPicker(BuildContext context) async {
     TimeOfDay initialTime = TimeOfDay.now();
     TimeOfDay t = await showTimePicker(
         context: context,
@@ -250,7 +250,7 @@ class CalendarState extends State<CalendarPage> {
                    TextField(
                      onTap: (){
                        setState(() {
-                          showPicker().then((value) => timer.text = value);
+                          showPicker(context).then((value) => timer.text = value);
                        });
                      },
                      controller: timer,
