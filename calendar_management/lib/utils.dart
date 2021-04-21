@@ -26,7 +26,7 @@ final kFirstDay = DateTime(kNow.year, 1, 1);
 final kLastDay = DateTime(kNow.year + 1, 1, 1);
 
 abstract class Functions {
-  Future sendEmail(String s);
+  Future sendEmail(String s, String d,String t);
   Future<List> eventUsers(List w);
   int calculateDifference(DateTime date);
 }
@@ -36,7 +36,7 @@ class FunctionUtils implements Functions {
       .getCurrentUser()
       .uid).get();
 
-  Future sendEmail(String s) async {
+  Future sendEmail(String s, String d,String t) async {
     String username = 'calendarpesurr@gmail.com';
     String password = 'pesurr%^&*';
     final smtpServer = gmail(username, password);
@@ -44,11 +44,11 @@ class FunctionUtils implements Functions {
     final message = Message()
       ..from = Address(username, 'Your CalendarApp')
       ..recipients.add(s)
-      ..subject = 'Event Reminder :: 😀 :: ${DateTime.now()}'
-      ..html = "<h1>Reminder</h1>\n<p>This is to remind to attend the event scheduled with you .</p>";
+      ..subject = 'Event Reminder :: Date :: $d'
+      ..html = "<h1>Reminder</h1>\n<p>This is to remind to attend the event scheduled with you at time $t .</p>";
     try {
       final sendReport = await send(message, smtpServer);
-      showSimpleNotification(Text(sendReport.toString()),
+      showSimpleNotification(Text("Email Successfully Sent !!"),
           background: Color(0xff29a39d));
 
     } on MailerException catch (e) {

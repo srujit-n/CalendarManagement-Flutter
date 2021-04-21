@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:io';
 import 'package:calendar_management/LogIn.dart';
 import 'package:calendar_management/emailtext.dart';
 import 'package:calendar_management/utils.dart';
@@ -25,6 +26,7 @@ class CalendarState extends State<CalendarPage> {
   TextEditingController event = TextEditingController();
   TextEditingController timer = TextEditingController();
   TextEditingController desc = TextEditingController();
+  File file = File('lib/input.docx');
   DateTime _selectedDay;
   RegExp time_24H = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$");
   RegExp time_12H = new RegExp(r"^(2[0-3]|[01]?[0-9]):([0-5]?[0-9]) ?((a|p)m|(A|P)M)$");
@@ -55,10 +57,15 @@ class CalendarState extends State<CalendarPage> {
     )..addAll(k);
     print("added successfully");
   }
+  Future readFile() async {
+    String s = await file.readAsString();
+    print(s);
+  }
 
   @override
   void initState() {
     super.initState();
+    readFile();
     getEventData(Auth().getCurrentUser().uid);
       _selectedDay = _focusedDay;
       _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay));
@@ -106,11 +113,12 @@ class CalendarState extends State<CalendarPage> {
             .get();
         String name = sp.get("Name");
         String email = sp.get("Email");
+        String date = DateFormat('yyyy-MM-dd').format(_selectedDay);
         final snapShot = databaseReference.collection('Users')
             .doc(temp[i])
             .collection("Events")
             .doc(
-            DateFormat('yyyy-MM-dd').format(_selectedDay));
+            date);
         var data = await snapShot.get();
         int max = !data.exists ? 0 : data
             .get("EventList")
@@ -122,7 +130,7 @@ class CalendarState extends State<CalendarPage> {
                 Text(
                   "Event Added"),background: Color(0xff29a39d)
             );
-            FunctionUtils().sendEmail(email);
+            FunctionUtils().sendEmail(email,date,events[0]["time"]);
           }
           else {
             snapShot.set({
@@ -132,7 +140,7 @@ class CalendarState extends State<CalendarPage> {
                 Text(
                   "Event Added",),background: Color(0xff29a39d)
             );
-            FunctionUtils().sendEmail(email);
+            FunctionUtils().sendEmail(email,date,events[0]["time"]);
           }
         }
         else {
@@ -208,8 +216,14 @@ class CalendarState extends State<CalendarPage> {
             }
             else{
               for(int i=0;i<e.users.length;i++){
-                FunctionUtils().sendEmail(e.users[i]);
+                FunctionUtils().sendEmail(e.users[i],DateFormat('yyyy-MM-dd').format(_selectedDay),e.timer);
               }
+              Navigator
+                  .of(context)
+                  .pushReplacement(
+                  new MaterialPageRoute(builder: (BuildContext context) {
+                    return new CalendarPage();
+                  }));
             }
           },
           child: const Text('Yes'),),
@@ -341,7 +355,6 @@ class CalendarState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
