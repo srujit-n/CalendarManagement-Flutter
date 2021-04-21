@@ -182,186 +182,146 @@ class _LogInPageState extends State<LogInPage> {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              Container(
-                height: 0.1 * height,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                      padding:
-                      EdgeInsets.only(left: 0.08 * width, bottom: 0.02 * width),
-                      child: Text("Log IN",
-                          textAlign: TextAlign.center)),
-                ],
-              ),
-              Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
+    return WillPopScope(
+      onWillPop: () async =>null,
+      child: Scaffold(
+          body: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
                 Container(
-                    margin: EdgeInsets.only(left: 0.085 * width),
-                    padding: EdgeInsets.all(0.083 * width),
-                    width: 0.098 * width,
-                    height: 0.004 * height,
-                    decoration: BoxDecoration(color: Color(0xffffc501)))
-              ]),
-              Container(height: 0.09 * height),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
+                  height: 0.1 * height,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                        padding:
+                        EdgeInsets.only(left: 0.08 * width, bottom: 0.02 * width),
+                        child: Text("Log IN",
+                            textAlign: TextAlign.center)),
+                  ],
+                ),
+                Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
                   Container(
-                    child: Text("Login using social media",
+                      margin: EdgeInsets.only(left: 0.085 * width),
+                      padding: EdgeInsets.all(0.083 * width),
+                      width: 0.098 * width,
+                      height: 0.004 * height,
+                      decoration: BoxDecoration(color: Color(0xffffc501)))
+                ]),
+                Container(height: 0.09 * height),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      child: Text("Login using social media",
+                          textAlign: TextAlign.center),
+                    ),
+                  ],
+                ),
+                Container(height: 0.04 * height),
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(width)),
+                        color: Colors.grey[200]),
+                    child: IconButton(
+                        iconSize: height / 80,
+                        icon: new SvgPicture.asset('assets/images/google.svg'),
+                        onPressed: googleSignIn),
+                  ),
+                ),
+                Container(
+                  height: 0.05 * height,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text("OR",
+
                         textAlign: TextAlign.center),
-                  ),
-                ],
-              ),
-              Container(height: 0.04 * height),
-              Center(
-                child: Container(
-                  margin: EdgeInsets.only(left: 0.08 * width),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(width)),
-                      color: Colors.grey[200]),
-                  child: IconButton(
-                      iconSize: height / 80,
-                      icon: new SvgPicture.asset('assets/images/google.svg'),
-                      onPressed: googleSignIn),
+                  ],
                 ),
-              ),
-              Container(
-                height: 0.05 * height,
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text("OR",
-
-                      textAlign: TextAlign.center),
-                ],
-              ),
-              Container(
-                height: 0.05 * height,
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text("Login with Email",
-
-                      textAlign: TextAlign.center),
-                ],
-              ),
-              Container(
-                height: 0.04 * height,
-              ),
-              Row(
-                children: <Widget>[
-                  Container(
-                      padding: EdgeInsets.only(
-                          left: 0.08 * width, bottom: 0.004 * height),
-                      child: Text(
-                        "Email ID",
-                      )),
-                ],
-              ),
-              //here
-              Container(
-                height: 0.05 * height,
-                width: width,
-                margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
-                child: TextField(
-                  keyboardType: TextInputType.text,
-                  focusNode: emailFocus,
-                  controller: email,
-                  decoration: new InputDecoration(
-                    // labelText: 'Email',
-                    contentPadding: EdgeInsets.fromLTRB(1, 0, 0, 4),
-                    fillColor: Color(0xff131415),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color(0xffB8C0CC),
-                        )),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: const Color(0xff29a39d), style: BorderStyle.solid),
-                    ),
-                    suffix: loading
-                        ? CircularProgressIndicator()
-                        : IconButton(
-                        icon: Icon(
-                          Icons.check,
-                          color: const Color(0xff29a39d),
-                        ),
-                        onPressed: emailControl),
-                  ),
+                Container(
+                  height: 0.05 * height,
                 ),
-              ),
 
-              Container(
-                height: 0.040 * height,
-              ),
-              Row(
-                children: <Widget>[
-                  Container(
-                      padding: EdgeInsets.only(left: 0.08 * width),
-                      child: Text(
-                        "Password",
-                      )),
-                ],
-              ),
-              Container(
-                height: 0.05 * height,
-                width: width,
-                margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
-                child: TextField(
-                  focusNode: passwordFocus,
-                  controller: password,
-                  obscureText: true,
-                  decoration: new InputDecoration(
-                    contentPadding: EdgeInsets.fromLTRB(1, 0, 0, 4),
-                    fillColor: Color(0xff131415),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color(0xffB8C0CC),
-                        )),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: const Color(0xff29a39d), style: BorderStyle.solid),
-                    ),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text("Login with Email",
+
+                        textAlign: TextAlign.center),
+                  ],
                 ),
-              ),
-
-              Container(
-                height: 0.04 * height,
-              ),
-              Visibility(
-                visible:newAccount,
-                child:
+                Container(
+                  height: 0.04 * height,
+                ),
                 Row(
                   children: <Widget>[
                     Container(
-                        padding: EdgeInsets.only(left: 0.08 * width),
+                        padding: EdgeInsets.only(
+                            left: 0.08 * width, bottom: 0.004 * height),
                         child: Text(
-                          "Name",
+                          "Email ID",
                         )),
                   ],
                 ),
-              ),
-              Visibility(
-                visible:newAccount,
-                child:
+                //here
                 Container(
                   height: 0.05 * height,
                   width: width,
                   margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
                   child: TextField(
-                    focusNode: nameFocus,
-                    controller: firstName,
+                    keyboardType: TextInputType.text,
+                    focusNode: emailFocus,
+                    controller: email,
+                    decoration: new InputDecoration(
+                      // labelText: 'Email',
+                      contentPadding: EdgeInsets.fromLTRB(1, 0, 0, 4),
+                      fillColor: Color(0xff131415),
+                      enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xffB8C0CC),
+                          )),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                            color: const Color(0xff29a39d), style: BorderStyle.solid),
+                      ),
+                      suffix: loading
+                          ? CircularProgressIndicator()
+                          : IconButton(
+                          icon: Icon(
+                            Icons.check,
+                            color: const Color(0xff29a39d),
+                          ),
+                          onPressed: emailControl),
+                    ),
+                  ),
+                ),
+
+                Container(
+                  height: 0.040 * height,
+                ),
+                Row(
+                  children: <Widget>[
+                    Container(
+                        padding: EdgeInsets.only(left: 0.08 * width),
+                        child: Text(
+                          "Password",
+                        )),
+                  ],
+                ),
+                Container(
+                  height: 0.05 * height,
+                  width: width,
+                  margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
+                  child: TextField(
+                    focusNode: passwordFocus,
+                    controller: password,
+                    obscureText: true,
                     decoration: new InputDecoration(
                       contentPadding: EdgeInsets.fromLTRB(1, 0, 0, 4),
                       fillColor: Color(0xff131415),
@@ -376,29 +336,71 @@ class _LogInPageState extends State<LogInPage> {
                     ),
                   ),
                 ),
-              ),
-              Container(
-                height: 0.04 * height,
-              ),
-              Container(
-                  child: FlatButton(
-                      onPressed: controlSignUp,
-                      child: Container(
-                          width: 0.85 * width,
-                          height: 0.07 * height,
-                          decoration: BoxDecoration(
-                              borderRadius:
-                              BorderRadius.all(Radius.circular(width / 30)),
-                              color: const Color(0xffffc501)),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Text(signInBtnText,
-                                )
-                              ])))),
-            ],
-          ),
-        ));
+
+                Container(
+                  height: 0.04 * height,
+                ),
+                Visibility(
+                  visible:newAccount,
+                  child:
+                  Row(
+                    children: <Widget>[
+                      Container(
+                          padding: EdgeInsets.only(left: 0.08 * width),
+                          child: Text(
+                            "Name",
+                          )),
+                    ],
+                  ),
+                ),
+                Visibility(
+                  visible:newAccount,
+                  child:
+                  Container(
+                    height: 0.05 * height,
+                    width: width,
+                    margin: EdgeInsets.only(right: 0.08 * width, left: 0.08 * width),
+                    child: TextField(
+                      focusNode: nameFocus,
+                      controller: firstName,
+                      decoration: new InputDecoration(
+                        contentPadding: EdgeInsets.fromLTRB(1, 0, 0, 4),
+                        fillColor: Color(0xff131415),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0xffB8C0CC),
+                            )),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: const Color(0xff29a39d), style: BorderStyle.solid),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 0.04 * height,
+                ),
+                Container(
+                    child: FlatButton(
+                        onPressed: controlSignUp,
+                        child: Container(
+                            width: 0.85 * width,
+                            height: 0.07 * height,
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                BorderRadius.all(Radius.circular(width / 30)),
+                                color: const Color(0xffffc501)),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(signInBtnText,
+                                  )
+                                ])))),
+              ],
+            ),
+          )),
+    );
   }
 }

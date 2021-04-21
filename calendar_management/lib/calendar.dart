@@ -356,158 +356,161 @@ class CalendarState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text('Calendar'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromRGBO(255, 197, 1, 1),
-        onPressed: () => _showAction(context),
-        child:Icon(Icons.event_note_rounded,color: Colors.black,),
-      ),
-      body: Column(
-        children: [
-          Container(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Username : ${Auth().getCurrentUser().displayName}",style: TextStyle(
-                  fontSize: 20,
-                ),),
-                ElevatedButton(onPressed: (){
-                  signout();
-                },
-                    style: ButtonStyle(
-                      foregroundColor: MaterialStateProperty.all(Colors.black),
-                      backgroundColor: MaterialStateProperty.all( Color.fromRGBO(255, 197, 1, 1)),
-                    ),
-                    child: Text("Log Out")),
-              ],
-            ),
-          ),
-          Divider(thickness: 2,),
-          TableCalendar(
-            firstDay: kFirstDay,
-            lastDay: kLastDay,
-            daysOfWeekVisible: true,
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            calendarFormat: _calendarFormat,
-            calendarBuilders: CalendarBuilders(
-              singleMarkerBuilder: (context,DateTime t ,Event f){
-                return Container(
-                  decoration: new BoxDecoration(
-                    color: const Color(0xff082649),
-                    shape: BoxShape.circle,
-                  ),
-                  margin: EdgeInsets.symmetric(horizontal: width/150),
-                  width: width / 80,
-                  height: width / 80,
-                );
-              },
-              todayBuilder:  (context,DateTime t ,DateTime f){
-                return Container(
-                  decoration: new BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black)
-                  ),
-                  margin: EdgeInsets.all(width / 100),
-                  width: width / 11,
-                  height: width / 11,
-                  child: Center(
-                    child: Text(
-                      '${t.day}',
-                    ),
-                  ),
-                );
-              },
-              selectedBuilder: (context,DateTime t ,DateTime f){
-                return Container(
-                  decoration: new BoxDecoration(
-                    color: Color.fromRGBO(255, 197, 1, 1),
-                    shape: BoxShape.circle,
-                  ),
-                  margin: EdgeInsets.all(width / 100),
-                  width: width / 11,
-                  height: width / 11,
-                  child: Center(
-                    child: Text(
-                      '${t.day}',
-                    ),
-                  ),
-                );
-              }
-            ),
-            eventLoader: _getEventsForDay,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            calendarStyle: CalendarStyle(
-              outsideDaysVisible: true,
-            ),
-            headerStyle: HeaderStyle(
-              formatButtonVisible: false
-            ),
-            onDaySelected: _onDaySelected,
-            onFormatChanged: (format) {
-              if (_calendarFormat != format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              }
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-          ),
-          const SizedBox(height: 8.0),
-          Expanded(
-            child: ValueListenableBuilder<List<Event>>(
-              valueListenable: _selectedEvents,
-              builder: (context, value, _) {
-                return ListView.builder(
-                  itemCount: value.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: ListTile(
-                        onLongPress: (){
-                          if(value[index].creator==emails[0]){
-                            _TapEvents(value[index], 0);
-                          }
-                          else{
-                            showSimpleNotification(Text("You can't delete event since you aren't the owner of it"),
-                                background: Color(0xff29a39d));
-                          }
-                        },
-                        onTap: () {
-                          if(value[index].creator==emails[0]){
-                            _TapEvents(value[index], 1);
-                          }
-                          else{
-                            showSimpleNotification(Text("You can't send reminders since you didn't create the event"),
-                                background: Color(0xff29a39d));
-                          }
-                        },
-                        leading: Text((index+1).toString(),style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
-                        title: Text('${value[index].title}',style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
-                        subtitle: Text(value[index].desc,style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
-                        trailing: Text(value[index].timer,style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
-                      ),
-                    );
+    return WillPopScope(
+      onWillPop: () async =>null,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: Text('Calendar'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color.fromRGBO(255, 197, 1, 1),
+          onPressed: () => _showAction(context),
+          child:Icon(Icons.event_note_rounded,color: Colors.black,),
+        ),
+        body: Column(
+          children: [
+            Container(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Username : ${Auth().getCurrentUser().displayName}",style: TextStyle(
+                    fontSize: 20,
+                  ),),
+                  ElevatedButton(onPressed: (){
+                    signout();
                   },
-                );
+                      style: ButtonStyle(
+                        foregroundColor: MaterialStateProperty.all(Colors.black),
+                        backgroundColor: MaterialStateProperty.all( Color.fromRGBO(255, 197, 1, 1)),
+                      ),
+                      child: Text("Log Out")),
+                ],
+              ),
+            ),
+            Divider(thickness: 2,),
+            TableCalendar(
+              firstDay: kFirstDay,
+              lastDay: kLastDay,
+              daysOfWeekVisible: true,
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              calendarFormat: _calendarFormat,
+              calendarBuilders: CalendarBuilders(
+                singleMarkerBuilder: (context,DateTime t ,Event f){
+                  return Container(
+                    decoration: new BoxDecoration(
+                      color: const Color(0xff082649),
+                      shape: BoxShape.circle,
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: width/150),
+                    width: width / 80,
+                    height: width / 80,
+                  );
+                },
+                todayBuilder:  (context,DateTime t ,DateTime f){
+                  return Container(
+                    decoration: new BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black)
+                    ),
+                    margin: EdgeInsets.all(width / 100),
+                    width: width / 11,
+                    height: width / 11,
+                    child: Center(
+                      child: Text(
+                        '${t.day}',
+                      ),
+                    ),
+                  );
+                },
+                selectedBuilder: (context,DateTime t ,DateTime f){
+                  return Container(
+                    decoration: new BoxDecoration(
+                      color: Color.fromRGBO(255, 197, 1, 1),
+                      shape: BoxShape.circle,
+                    ),
+                    margin: EdgeInsets.all(width / 100),
+                    width: width / 11,
+                    height: width / 11,
+                    child: Center(
+                      child: Text(
+                        '${t.day}',
+                      ),
+                    ),
+                  );
+                }
+              ),
+              eventLoader: _getEventsForDay,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              calendarStyle: CalendarStyle(
+                outsideDaysVisible: true,
+              ),
+              headerStyle: HeaderStyle(
+                formatButtonVisible: false
+              ),
+              onDaySelected: _onDaySelected,
+              onFormatChanged: (format) {
+                if (_calendarFormat != format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                }
+              },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
               },
             ),
-          )
-        ],
+            const SizedBox(height: 8.0),
+            Expanded(
+              child: ValueListenableBuilder<List<Event>>(
+                valueListenable: _selectedEvents,
+                builder: (context, value, _) {
+                  return ListView.builder(
+                    itemCount: value.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: ListTile(
+                          onLongPress: (){
+                            if(value[index].creator==emails[0]){
+                              _TapEvents(value[index], 0);
+                            }
+                            else{
+                              showSimpleNotification(Text("You can't delete event since you aren't the owner of it"),
+                                  background: Color(0xff29a39d));
+                            }
+                          },
+                          onTap: () {
+                            if(value[index].creator==emails[0]){
+                              _TapEvents(value[index], 1);
+                            }
+                            else{
+                              showSimpleNotification(Text("You can't send reminders since you didn't create the event"),
+                                  background: Color(0xff29a39d));
+                            }
+                          },
+                          leading: Text((index+1).toString(),style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                          title: Text('${value[index].title}',style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                          subtitle: Text(value[index].desc,style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                          trailing: Text(value[index].timer,style: TextStyle(color: Color.fromRGBO(255, 197, 1, 1)),),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
