@@ -26,7 +26,7 @@ final kFirstDay = DateTime(kNow.year, 1, 1);
 final kLastDay = DateTime(kNow.year + 1, 1, 1);
 
 abstract class Functions {
-  Future sendEmail(String s, String d,String t);
+  Future sendEmail(String s, String d,String t,String u);
   Future<List> eventUsers(List w);
   int calculateDifference(DateTime date);
 }
@@ -36,7 +36,7 @@ class FunctionUtils implements Functions {
       .getCurrentUser()
       .uid).get();
 
-  Future sendEmail(String s, String d,String t) async {
+  Future sendEmail(String s, String d,String t,String u) async {
     String username = 'calendarpesurr@gmail.com';
     String password = 'pesurr%^&*';
     final smtpServer = gmail(username, password);
@@ -45,7 +45,7 @@ class FunctionUtils implements Functions {
       ..from = Address(username, 'Your CalendarApp')
       ..recipients.add(s)
       ..subject = 'Event Reminder :: Date :: $d'
-      ..html = "<h1>Reminder</h1>\n<p>This is to remind to attend the event scheduled with you at time $t .</p>";
+      ..html = "<h1>Reminder</h1>\n<p>This is to remind to attend the event scheduled with $u at time $t .</p>";
     try {
       final sendReport = await send(message, smtpServer);
       showSimpleNotification(Text("Email Successfully Sent !!"),

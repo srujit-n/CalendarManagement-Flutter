@@ -130,7 +130,7 @@ class CalendarState extends State<CalendarPage> {
                 Text(
                   "Event Added"),background: Color(0xff29a39d)
             );
-            FunctionUtils().sendEmail(email,date,events[0]["time"]);
+            FunctionUtils().sendEmail(email,date,events[0]["time"],emails[0]);
           }
           else {
             snapShot.set({
@@ -140,7 +140,7 @@ class CalendarState extends State<CalendarPage> {
                 Text(
                   "Event Added",),background: Color(0xff29a39d)
             );
-            FunctionUtils().sendEmail(email,date,events[0]["time"]);
+            FunctionUtils().sendEmail(email,date,events[0]["time"],emails[0]);
           }
         }
         else {
@@ -216,7 +216,7 @@ class CalendarState extends State<CalendarPage> {
             }
             else{
               for(int i=0;i<e.users.length;i++){
-                FunctionUtils().sendEmail(e.users[i],DateFormat('yyyy-MM-dd').format(_selectedDay),e.timer);
+                FunctionUtils().sendEmail(e.users[i],DateFormat('yyyy-MM-dd').format(_selectedDay),e.timer,e.creator);
               }
               Navigator
                   .of(context)
